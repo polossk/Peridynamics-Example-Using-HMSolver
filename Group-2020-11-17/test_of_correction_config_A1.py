@@ -62,26 +62,27 @@ def output_kavg(kavg_old, kavg_new, export_filename):
         print("relative error   :=", f"{err_relative * 100:.5f}%", file=fout)
 
 
-def main(example_name, mesh_file_name, export_filename):
+def main(example_name, mesh_config, cname, export_filename):
     t0 = time.time()
     zone_xl, zone_xr = 0, 1
     zone_yl, zone_yr = 0, 2
     zone_xmid = 0.5 * (zone_xl + zone_xr)
     zone_ymid = 0.5 * (zone_yl + zone_yr)
-    inner_hole_radius = 0.1
     total_area = (zone_yr - zone_yl) * (zone_xr - zone_xl)
-    total_area -= np.pi * (inner_hole_radius**2)
     zone = Zone2d(zone_xl, zone_xr, zone_yl, zone_yr)
+    nx, ny, grid_size = mesh_config
     # 网格配置
-    mesh2d = read_mesh_to_MeshObject(mesh_file_name, HybridMesh2d)
+    mesh2d = zone.meshgrid_zone_safe_xy(HybridMesh2d, nx, ny)
     n_nodes, n_elements = mesh2d.n_nodes, mesh2d.n_elements
     grid_size = np.sqrt(total_area / n_elements)
     print(f"Mesh contains {n_nodes} nodes and {n_elements} elements.")
     print(f"Average Grid Size= {grid_size:.8f}")
     ratio = 3  # 近场邻域比例
     horizon_radius, inst_len = ratio * grid_size, 0.6 * grid_size
-    # material2d = PdMaterial2d(192e9, 1.0 / 3)
-    material2d = PdMaterial2d(192e9, 1.0 / 3, attenuation_term_config="exp")
+    if cname == "constant":
+        material2d = PdMaterial2d(192e9, 1.0 / 3)
+    elif cname == "attenuate":
+        material2d = PdMaterial2d(192e9, 1.0 / 3, attenuation_term_config="exp")
     stretch = 0.1
     _bc_ = boundary_cond2d  # abbreviate the word for type & read
     boundarys_ccm = BoundaryConds2d()
@@ -156,11 +157,16 @@ def main(example_name, mesh_file_name, export_filename):
 
 if __name__ == "__main__":
     # 基础配置
-    # meshtype          # 网格单元配置名 options: 1, 2, 3
+    # meshtype          # 网格单元配置名 options: 0, 1, 2, 3, 4
+    # constitutive      # 本构模型 options: "const", "exp"
     arg = argparse.ArgumentParser(f"python {sys.argv[0]}")
     arg.add_argument("-t", "--mtype", metavar="int", default=1, type=int, help="mesh type of simulation")
+    arg.add_argument("-c", "--ctype", metavar="str", default="const", type=str, help="constitutive type")
     args = arg.parse_args()
-    example_name = "example-A2A-constant"
-    mesh_file_name = f"A2{args.mtype}.mesh"
+    configs = [(4, 8, 0.25), (8, 16, 0.125), (16, 32, 0.0625), (32, 64, 0.03125), (64, 128, 0.015625)]
+    constitutive_mapping = {"const":("A", "constant"), "exp": ("B", "attenuate")}
+    c, cname = constitutive_mapping[args.ctype]
+    example_name = f"example-A1{c}-{cname}"
     export_filename = example_name + ".out"
-    main(example_name, mesh_file_name, export_filename)
+    nx, ny, grid_size = configs[args.mtype]
+    main(example_name, (nx, ny, grid_size), cname, export_filename)
