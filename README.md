@@ -9,6 +9,5 @@ Peridynamics-Example-Using-HMSolver\
 │  README.md
 │
 └─Group-2020-11-17\
-    └─Example-A1\
-    └─Example-C\
+       README.md
 ```
