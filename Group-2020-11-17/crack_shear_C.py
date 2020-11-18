@@ -14,7 +14,7 @@ import sys
 import argparse
 import pickle
 
-def main(name, run_id, mesh_type, total_phase=5):
+def main(example_name, mesh_file_name, cname, total_phase=5):
     t0 = time.time()  # tic
     # 几何区域
     zone_xl, zone_xr = 0, 1
@@ -30,7 +30,6 @@ def main(name, run_id, mesh_type, total_phase=5):
     zone = Zone2d(zone_xl, zone_xr, zone_yl, zone_yr)
 
     # 加载网格剖分结果
-    mesh_file_name = f"{name}{run_id}{mesh_type}.mesh"
     mesh2d = read_mesh_to_MeshObject(mesh_file_name, HybridCrackMesh2d)
     n_nodes, n_elements = mesh2d.n_nodes, mesh2d.n_elements
 
@@ -50,8 +49,10 @@ def main(name, run_id, mesh_type, total_phase=5):
     print(f"Average Grid Size= {grid_size:.8f}")
 
     # 建立材料实例
-    material2d = PdMaterial2d(192e9, 1.0 / 3)
-    # material2d = PdMaterial2d(192e9, 1.0 / 3, attenuation_term_config="exp")
+    if cname == "constant":
+        material2d = PdMaterial2d(192e9, 1.0 / 3)
+    elif cname == "attenuate":
+        material2d = PdMaterial2d(192e9, 1.0 / 3, attenuation_term_config="exp")
 
     # 边界条件
     shear = 0.04
@@ -68,7 +69,7 @@ def main(name, run_id, mesh_type, total_phase=5):
 
     # 建立断裂模拟实例
     app = CrackSimulation2d(mesh2d, material2d, boundarys)
-    app.app_name = f"{name}{run_id}{mesh_type}"
+    app.app_name = example_name
     app.parallelized = True # 开启并行多线程
     app.material.stretch_crit = 0.02
     horizon_radius = grid_size * 3
@@ -96,10 +97,17 @@ if __name__ == '__main__':
     # name := "C"       # 算例名
     # runid             # 子算例名 options: 1
     # meshtype          # 网格名 options: 1, 2
+    # constitutive      # 本构模型 options: "const", "exp"
+    # phase             # 拟静态断裂加载步数 options: $\mathbb Z^+$ positive intergers
     arg = argparse.ArgumentParser(f"python {sys.argv[0]}")
     arg.add_argument("-n", "--name", metavar="str", default="C", type=str, help="name of simulation")
     arg.add_argument("-r", "--runid", metavar="int", default=1, type=int, help="sub number(runid) of simulation")
     arg.add_argument("-t", "--mtype", metavar="int", default=1, type=int, help="mesh type of simulation")
+    arg.add_argument("-c", "--ctype", metavar="str", default="const", type=str, help="constitutive type")
     arg.add_argument("-p", "--phase", metavar="int", default=5, type=int, help="total phase of simulation")
     args = arg.parse_args()
-    main(args.name, args.runid, args.mtype, args.phase)
+    constitutive_mapping = {"const":("A", "constant"), "exp": ("B", "attenuate")}
+    c, cname = constitutive_mapping[args.ctype]
+    example_name = f"example-{args.name}{args.runid}{c}-{cname}"
+    mesh_file_name = f"B{args.runid}{args.mtype}.mesh"
+    main(example_name, mesh_file_name, cname, args.phase)

@@ -76,3 +76,25 @@
    python test_of_correction_config_B.py -r 3 -t 2 -c exp | tee example-B3B2.log
    echo done
    ```
+
+## `crack_shear_C.py` & `elas_C.py`
+
+* Usage
+   ```shell
+   > python crack_shear_C.py [option] | tee <logfile>
+   ```
+* Options
+   | Option | Full name |                     Description |                             Values |
+   | :----- | :-------- | ------------------------------: | ---------------------------------: |
+   | `-n`   | `--name`  |              name of simulation |                         any string |
+   | `-r`   | `--runid` | sub number(runid) of simulation |                            1, 2, 3 |
+   | `-t`   | `--mtype` |         mesh type of simulation |                               1, 2 |
+   | `-c`   | `--ctype` |               constitutive type |                     "const", "exp" |
+   | `-p`   | `--phase` |       total phase of simulation | positive intergers ($\mathbb Z^+$) |
+* `Example_C.ps1`
+   ```shell
+   python elas_C.py
+   python crack_shear_C.py -t 2 -c const -p 200 | tee C12A-200.log
+   python crack_shear_C.py -t 2 -c exp -p 200 | tee C12C-200.log
+   echo done
+   ```

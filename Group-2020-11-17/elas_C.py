@@ -11,13 +11,12 @@ from hmsolver.basis import Quad4Node
 from hmsolver.utils import formatting_time
 
 if __name__ == '__main__':
-    # tic
-    t0 = time.time()
+    t0 = time.time()  # tic
 
     # 基础配置
-    name = "C" # 算例名
-    run_id = 1 # 子算例名
-    mesh_type = "2" # 网格名 options: "1", "2"
+    name = "C"  # 算例名
+    run_id = 1  # 子算例名
+    mesh_type = "2"  # 网格名 options: "1", "2"
 
     # 几何区域
     zone_xl, zone_xr = 0, 1
@@ -28,7 +27,8 @@ if __name__ == '__main__':
     notch_width, notch_depth = 0.1, 0.4
     total_area = (zone_yr - zone_yl) * (zone_xr - zone_xl)
     total_area -= np.pi * (inner_hole_radius**2)
-    total_area -= notch_width * notch_depth + 0.5 * np.pi * (notch_width/2)**2
+    total_area -= notch_width * notch_depth + 0.5 * np.pi * (notch_width /
+                                                             2)**2
     zone = Zone2d(zone_xl, zone_xr, zone_yl, zone_yr)
 
     # 加载网格剖分结果
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     # 建立模拟实例
     app = Simulation2d(mesh2d, material2d, boundarys)
     app.app_name = f"{name}{run_id}{mesh_type}"
-    app.parallelized = True # 开启并行多线程
+    app.parallelized = True  # 开启并行多线程
     app.apply_basis(Quad4Node())
     app.check_engine()
 
