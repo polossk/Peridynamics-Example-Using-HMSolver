@@ -149,7 +149,7 @@ def main(example_name, mesh_file_name, cname, export_filename):
     app_pd = PdSimulation2d(mesh2d, material2d, boundarys_pd)
     # app_pd = PdSimulation2d(mesh2d, material2d, boundarys_pd_new)
     app_pd.parallelized = True
-    app_pd.app_name = "plate-C"
+    app_pd.app_name = example_name
     app_pd.material.setPeridynamic(horizon_radius, grid_size, inst_len)
     app_pd.mesh.peridynamic_construct(horizon_radius, 2 * horizon_radius,
                                       4 * horizon_radius)
@@ -177,8 +177,8 @@ def main(example_name, mesh_file_name, cname, export_filename):
             "peridynamic-displacement-error" + f"{runid:02d}",
             ['"Ux Before"', '"Uy Before"', '"Ux After"', '"Uy After"'],
             [u_err_0[:, 0], u_err_0[:, 1], u_err_1[:, 0], u_err_1[:, 1]])
-        output_error(u_err_0, u_err_1, runid, grid_size)
-        output_kavg(kavg_old, app_pd.k_avgs)
+        output_error(u_err_0, u_err_1, runid, grid_size, export_filename)
+        output_kavg(kavg_old, app_pd.k_avgs, export_filename)
         kavg_old = app_pd.k_avgs
     print(f"Total time cost: {formatting_time(time.time() - t0)}")
 
