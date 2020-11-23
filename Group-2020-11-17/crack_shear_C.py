@@ -55,7 +55,7 @@ def main(example_name, mesh_file_name, cname, total_phase=5):
         material2d = PdMaterial2d(192e9, 1.0 / 3, attenuation_term_config="exp")
 
     # 边界条件
-    shear = 0.04
+    shear = 0.02
     boundary_1 = segment_criteria(zone_xl, zone_yl, zone_xr, zone_yl)
     boundary_2 = segment_criteria(zone_xl, zone_yr, zone_xr, zone_yr)
     boundary_3 = segment_criteria(zone_xl, zone_yr, zone_xmid, zone_yr)

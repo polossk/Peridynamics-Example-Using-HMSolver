@@ -47,7 +47,7 @@ if __name__ == '__main__':
     material2d = PdMaterial2d(192e9, 1.0 / 3)
 
     # 边界条件
-    shear = 0.04
+    shear = 0.02
     boundary_1 = segment_criteria(zone_xl, zone_yl, zone_xr, zone_yl)
     boundary_2 = segment_criteria(zone_xl, zone_yr, zone_xr, zone_yr)
     _bc_ = boundary_cond2d  # abbreviate the word for type & read
