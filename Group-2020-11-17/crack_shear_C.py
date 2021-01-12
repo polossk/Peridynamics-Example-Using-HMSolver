@@ -55,10 +55,12 @@ def main(example_name, mesh_file_name, cname, total_phase=5):
         material2d = PdMaterial2d(192e9, 1.0 / 3, attenuation_term_config="exp")
 
     # 边界条件
-    shear = 0.02
+    shear = 0.04
     boundary_1 = segment_criteria(zone_xl, zone_yl, zone_xr, zone_yl)
     boundary_2 = segment_criteria(zone_xl, zone_yr, zone_xr, zone_yr)
     boundary_3 = segment_criteria(zone_xl, zone_yr, zone_xmid, zone_yr)
+    boundary_4 = segment_criteria(zone_xr, zone_yl, zone_xr, zone_ymid)
+    boundary_5 = segment_criteria(zone_xl, zone_ymid, zone_xl, zone_yr)
     _bc_ = boundary_cond2d  # abbreviate the word for type & read
     boundarys = BoundaryConds2d(
         _bc_("segment", boundary_1, "set_ux", "constant", +shear),
@@ -84,6 +86,8 @@ def main(example_name, mesh_file_name, cname, total_phase=5):
     app.export_to_tecplot("hybrid-start", *app.provied_solutions)
     app.manual_set_gaint_unbroken_zone(boundary_1)
     app.manual_set_gaint_unbroken_zone(boundary_3)
+    app.manual_set_gaint_unbroken_zone(boundary_4)
+    app.manual_set_gaint_unbroken_zone(boundary_5)
     app.using_peridynamics_only()
 
     # 运行断裂模拟
@@ -109,5 +113,5 @@ if __name__ == '__main__':
     constitutive_mapping = {"const":("A", "constant"), "exp": ("B", "attenuate")}
     c, cname = constitutive_mapping[args.ctype]
     example_name = f"example-{args.name}{args.runid}{c}-{cname}"
-    mesh_file_name = f"B{args.runid}{args.mtype}.mesh"
+    mesh_file_name = f"C{args.runid}{args.mtype}.mesh"
     main(example_name, mesh_file_name, cname, args.phase)
