@@ -12,9 +12,9 @@
 
 | File Type  | SLOC |
 | :--------- | ---: |
-| python     |  717 |
-| powershell |   40 |
-| markdown   |  132 |
+| python     | 1071 |
+| powershell |   54 |
+| markdown   |  172 |
 
 * Linux: Shell
    ```shell
