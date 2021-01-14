@@ -136,7 +136,7 @@ def main(example_name, mesh_config, cname, export_filename):
     app_pd.export_to_tecplot("peridynamic-without-correction",
                              *app_pd.provied_solutions)
     wpd_0 = app_pd.get_pd_elastic_energy_density()
-    app_pd.export_custom_data_to_tecplot("peridynamic-energy-density-0",
+    app_pd.export_custom_data_to_tecplot("peridynamic-energy-density",
                                          ['"wpd"'], [wpd_0])
     u_err_0 = app_pd.u - app_ccm.u
     kavg_old = app_pd.k_avgs
@@ -184,7 +184,7 @@ if __name__ == "__main__":
         "exp": ("B", "attenuate")
     }
     c, cname = constitutive_mapping[args.ctype]
-    example_name = "example-A2{c}-{cname}"
+    example_name = f"example-A2{c}-{cname}"
     mesh_file_name = f"A2{args.mtype}.mesh"
     export_filename = example_name + ".out"
     main(example_name, mesh_file_name, cname, export_filename)
