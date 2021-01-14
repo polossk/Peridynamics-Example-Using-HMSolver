@@ -1,5 +1,9 @@
 # Usage of Group-2020-11-17
 
+> Hybrid-Model-Solver 代码版本：
+> [**@c0ad398**](https://github.com/polossk/Hybrid-Model-Solver/commit/c0ad39875dc46d711f8038a793aff96a6133bd8f)，
+> [**@1e0a3b2**](https://github.com/polossk/Hybrid-Model-Solver/commit/1e0a3b2ca42645f0b15f6a879c67585da665d33a)
+
 ## `test_of_correction_config_A1.py`
 
 * Usage
