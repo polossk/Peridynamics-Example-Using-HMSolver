@@ -15,6 +15,7 @@ from hmsolver.femcore import boundary_cond2d, BoundaryConds2d
 from hmsolver.femcore import read_mesh_to_MeshObject
 from hmsolver.utils import formatting_time
 
+
 def mse(sth):
     return np.sqrt(np.dot(sth, sth) / max(sth.shape))
 
@@ -82,7 +83,9 @@ def main(example_name, mesh_config, cname, export_filename):
     if cname == "constant":
         material2d = PdMaterial2d(192e9, 1.0 / 3)
     elif cname == "attenuate":
-        material2d = PdMaterial2d(192e9, 1.0 / 3, attenuation_term_config="exp")
+        material2d = PdMaterial2d(192e9,
+                                  1.0 / 3,
+                                  attenuation_term_config="exp")
     stretch = 0.1
     _bc_ = boundary_cond2d  # abbreviate the word for type & read
     boundarys_ccm = BoundaryConds2d()
@@ -132,7 +135,7 @@ def main(example_name, mesh_config, cname, export_filename):
     app_pd.export_to_tecplot("peridynamic-without-correction",
                              *app_pd.provied_solutions)
     wpd_0 = app_pd.get_pd_elastic_energy_density()
-    app_pd.export_custom_data_to_tecplot("peridynamic-energy-density-0",
+    app_pd.export_custom_data_to_tecplot("peridynamic-energy-density",
                                          ['"wpd"'], [wpd_0])
     u_err_0 = app_pd.u - app_ccm.u
     kavg_old = app_pd.k_avgs
@@ -140,8 +143,9 @@ def main(example_name, mesh_config, cname, export_filename):
         print(f"### Runid= {runid}")
         app_pd.init_surface_correction()
         app_pd.clear()
-        app_pd.export_to_tecplot("peridynamic-after-correction"+f"{runid:02d}",
-                             *app_pd.provied_solutions)
+        app_pd.export_to_tecplot(
+            "peridynamic-after-correction" + f"{runid:02d}",
+            *app_pd.provied_solutions)
         wpd_1 = app_pd.get_pd_elastic_energy_density()
         u_err_1 = app_pd.u - app_ccm.u
         app_pd.export_custom_data_to_tecplot(
@@ -155,16 +159,31 @@ def main(example_name, mesh_config, cname, export_filename):
         kavg_old = app_pd.k_avgs
     print(f"Total time cost: {formatting_time(time.time() - t0)}")
 
+
 if __name__ == "__main__":
     # 基础配置
     # meshtype          # 网格单元配置名 options: 0, 1, 2, 3, 4
     # constitutive      # 本构模型 options: "const", "exp"
     arg = argparse.ArgumentParser(f"python {sys.argv[0]}")
-    arg.add_argument("-t", "--mtype", metavar="int", default=1, type=int, help="mesh type of simulation")
-    arg.add_argument("-c", "--ctype", metavar="str", default="const", type=str, help="constitutive type")
+    arg.add_argument("-t",
+                     "--mtype",
+                     metavar="int",
+                     default=1,
+                     type=int,
+                     help="mesh type of simulation")
+    arg.add_argument("-c",
+                     "--ctype",
+                     metavar="str",
+                     default="const",
+                     type=str,
+                     help="constitutive type")
     args = arg.parse_args()
-    configs = [(4, 8, 0.25), (8, 16, 0.125), (16, 32, 0.0625), (32, 64, 0.03125), (64, 128, 0.015625)]
-    constitutive_mapping = {"const":("A", "constant"), "exp": ("B", "attenuate")}
+    configs = [(4, 8, 0.25), (8, 16, 0.125), (16, 32, 0.0625),
+               (32, 64, 0.03125), (64, 128, 0.015625)]
+    constitutive_mapping = {
+        "const": ("A", "constant"),
+        "exp": ("B", "attenuate")
+    }
     c, cname = constitutive_mapping[args.ctype]
     example_name = f"example-A1{c}-{cname}"
     export_filename = example_name + ".out"
