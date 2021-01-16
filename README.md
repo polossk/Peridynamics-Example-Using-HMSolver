@@ -10,11 +10,12 @@
 
 ## Source lines of code (SLOC)
 
-| File Type  | SLOC |
-| :--------- | ---: |
-| python     | 1071 |
-| powershell |   54 |
-| markdown   |  172 |
+| SLOC             |   python | powershell | markdown |
+| :--------------- | -------: | ---------: | -------: |
+| .                |          |            |       24 |
+| Group-2020-11-17 |     1101 |         53 |      138 |
+| Utilities        |        9 |          1 |       12 |
+| **Total**        | **1110** |     **54** |  **174** |
 
 * Linux: Shell
    ```shell
