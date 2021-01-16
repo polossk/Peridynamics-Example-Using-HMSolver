@@ -1,8 +1,7 @@
 # Usage of Group-2020-11-17
 
 > Hybrid-Model-Solver 代码版本：
-> [**@c0ad398**](https://github.com/polossk/Hybrid-Model-Solver/commit/c0ad39875dc46d711f8038a793aff96a6133bd8f)，
-> [**@1e0a3b2**](https://github.com/polossk/Hybrid-Model-Solver/commit/1e0a3b2ca42645f0b15f6a879c67585da665d33a)
+> [**0.4.5a0 (@8fbddad)**](https://github.com/polossk/Hybrid-Model-Solver/commit/8fbddad44c8ff5550a0867ef94cac9ca8bd6a487)
 
 ## `test_of_correction_config_A1.py`
 
@@ -138,8 +137,8 @@
 * Options
    | Option | Full name |                     Description |                             Values |
    | :----- | :-------- | ------------------------------: | ---------------------------------: |
-   | `-n`   | `--name`  |              name of simulation |                         any string |
-   | `-r`   | `--runid` | sub number(runid) of simulation |                            1, 2, 3 |
+   | `-n`   | `--name`  |              name of simulation |                                'C' |
+   | `-r`   | `--runid` | sub number(runid) of simulation |                                  1 |
    | `-t`   | `--mtype` |         mesh type of simulation |                               1, 2 |
    | `-c`   | `--ctype` |               constitutive type |                     "const", "exp" |
    | `-p`   | `--phase` |       total phase of simulation | positive intergers ($\mathbb Z^+$) |
@@ -147,6 +146,6 @@
    ```shell
    python elas_C.py
    python crack_shear_C.py -t 2 -c const -p 200 | tee C12A-200.log
-   python crack_shear_C.py -t 2 -c exp -p 200 | tee C12C-200.log
+   python crack_shear_C.py -t 2 -c exp -p 200 | tee C12B-200.log
    echo done
    ```
