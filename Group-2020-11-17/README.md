@@ -99,6 +99,28 @@
    echo done
    ```
 
+## `test_of_correction_config_A5.py`
+
+* Usage
+   ```shell
+   > python test_of_correction_config_A5.py [option] | tee <logfile>
+   ```
+* Options
+   | Option | Full name |             Description |         Values |
+   | :----- | :-------- | ----------------------: | -------------: |
+   | `-t`   | `--mtype` | mesh type of simulation |        0, 1, 2 |
+   | `-c`   | `--ctype` |       constitutive type | "const", "exp" |
+* `Example_A5.ps1`
+   ```shell
+   python test_of_correction_config_A5.py -t 0 -c const | tee example-A5A0.log
+   python test_of_correction_config_A5.py -t 1 -c const | tee example-A5A1.log
+   python test_of_correction_config_A5.py -t 2 -c const | tee example-A5A2.log
+   python test_of_correction_config_A5.py -t 0 -c exp | tee example-A5B0.log
+   python test_of_correction_config_A5.py -t 1 -c exp | tee example-A5B1.log
+   python test_of_correction_config_A5.py -t 2 -c exp | tee example-A5B2.log
+   echo done
+   ```
+
 ## `test_of_correction_config_B.py`
 
 * Usage
