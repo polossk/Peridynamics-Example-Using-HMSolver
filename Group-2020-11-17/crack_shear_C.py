@@ -57,9 +57,7 @@ def main(example_name, mesh_file_name, cname, total_phase=5):
     if cname == "constant":
         material2d = PdMaterial2d(192e9, 1.0 / 3)
     elif cname == "attenuate":
-        material2d = PdMaterial2d(192e9,
-                                  1.0 / 3,
-                                  attenuation_term_config="exp")
+        material2d = PdMaterial2d(192e9, 1.0 / 3, attenuation="exp")
 
     # 边界条件
     shear = 0.02

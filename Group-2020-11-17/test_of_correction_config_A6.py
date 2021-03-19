@@ -24,10 +24,15 @@ def mae(sth):
     return np.max(np.abs(sth))
 
 
+def mse2l2e(sth, N, h):
+    return np.sqrt(sth**2 * h**2 * N)
+
+
 def output_error(u_err_0, u_err_1, runid, ratio, grid_size, export_filename):
+    n_nodes = u_err_0.shape[0]
     # mean square error
     mse_ux_0, mse_uy_0, mse_ux_1, mse_uy_1 = [
-        mse(_)
+        mse2l2e(mse(_), n_nodes, grid_size)
         for _ in [u_err_0[:, 0], u_err_0[:, 1], u_err_1[:, 0], u_err_1[:, 1]]
     ]
     # maximum absolute error
@@ -80,13 +85,11 @@ def main(example_name, mesh_config, ratio, cname, export_filename):
     grid_size = np.sqrt(total_area / n_elements)
     print(f"Mesh contains {n_nodes} nodes and {n_elements} elements.")
     print(f"Average Grid Size= {grid_size:.8f}")
-    horizon_radius, inst_len = ratio * grid_size, 0.6 * grid_size
+    horizon_radius, inst_len = ratio * grid_size, grid_size / 3.0
     if cname == "constant":
         material2d = PdMaterial2d(192e9, 1.0 / 3)
     elif cname == "attenuate":
-        material2d = PdMaterial2d(192e9,
-                                  1.0 / 3,
-                                  attenuation_term_config="exp")
+        material2d = PdMaterial2d(192e9, 1.0 / 3, attenuation="exp")
     stretch = 0.1
     _bc_ = boundary_cond2d  # abbreviate the word for type & read
     boundarys_ccm = BoundaryConds2d()
@@ -164,7 +167,7 @@ def main(example_name, mesh_config, ratio, cname, export_filename):
 
 if __name__ == "__main__":
     # 基础配置
-    # meshtype          # 网格单元配置名 options: 1, 2, 3，这里的网格主要指 horizon 的大小配置
+    # meshtype          # 网格单元配置名 options: 1, 2, 3, 4, 5，这里的网格主要指 horizon 的大小配置
     # constitutive      # 本构模型 options: "const", "exp"
     arg = argparse.ArgumentParser(f"python {sys.argv[0]}")
     arg.add_argument("-t",
@@ -180,7 +183,7 @@ if __name__ == "__main__":
                      type=str,
                      help="constitutive type")
     args = arg.parse_args()
-    configs = {1: 8, 2: 4, 3: 2}
+    configs = {1: 6, 2: 5, 3: 4, 4: 3, 5: 2}
     constitutive_mapping = {
         "const": ("A", "constant"),
         "exp": ("B", "attenuate")
@@ -188,6 +191,6 @@ if __name__ == "__main__":
     c, cname = constitutive_mapping[args.ctype]
     example_name = f"example-A6{c}{args.mtype}-{cname}"
     mesh_file_name = f"A24.mesh"
-    export_filename = example_name + ".out"
+    export_filename = f"example-A6{c}" + ".out"
     ratio = configs[args.mtype]
     main(example_name, mesh_file_name, ratio, cname, export_filename)
