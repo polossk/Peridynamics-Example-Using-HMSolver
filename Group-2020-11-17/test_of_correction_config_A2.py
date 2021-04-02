@@ -10,8 +10,11 @@ from hmsolver.app import PdSimulation2d
 from hmsolver.basis import Quad4Node
 from hmsolver.meshgrid import Zone2d, HybridMesh2d
 from hmsolver.material import PdMaterial2d
-from hmsolver.femcore import point_criteria, segment_criteria
-from hmsolver.femcore import boundary_cond2d, BoundaryConds2d
+from hmsolver.femcore import point_criteria
+from hmsolver.femcore import segment_criteria
+from hmsolver.femcore import rectangle_criteria
+from hmsolver.femcore import boundary_cond2d as _bc_  # abbreviate the word for type & read
+from hmsolver.femcore import BoundaryConds2d
 from hmsolver.femcore import read_mesh_to_MeshObject
 from hmsolver.utils import formatting_time
 
@@ -87,49 +90,57 @@ def main(example_name, mesh_config, cname, export_filename):
     ratio = 3  # 近场邻域比例
     horizon_radius, inst_len = ratio * grid_size, grid_size / 3.0
     if cname == "constant":
-        material2d = PdMaterial2d(192e9, 1.0 / 3)
+        material2d = PdMaterial2d(192, 1.0 / 3)
     elif cname == "attenuate":
-        material2d = PdMaterial2d(192e9, 1.0 / 3, attenuation="exp")
+        material2d = PdMaterial2d(192, 1.0 / 3, attenuation="exp")
+        # material2d = PdMaterial2d(192, 1.0 / 3, attenuation="exp", is_simplest=True)
+
+    # yapf: disable
     stretch = 0.1
-    _bc_ = boundary_cond2d  # abbreviate the word for type & read
+    center_yl = point_criteria(zone_xmid, zone_yl)
+    center_yr = point_criteria(zone_xmid, zone_yr)
+    dirichlet_yl = segment_criteria(zone_xl, zone_yl, zone_xr, zone_yl)
+    dirichlet_yr = segment_criteria(zone_xl, zone_yr, zone_xr, zone_yr)
+    cline_xmid = segment_criteria(zone_xmid, zone_yl, zone_xmid, zone_yr)
+    cline_ymid = segment_criteria(zone_xl, zone_ymid, zone_xr, zone_ymid)
+
     boundarys_ccm = BoundaryConds2d()
-    boundarys_ccm.append(
-        _bc_("point", point_criteria(zone_xmid, zone_yl), "set_ux", "constant",
-             0))
-    boundarys_ccm.append(
-        _bc_("point", point_criteria(zone_xmid, zone_yr), "set_ux", "constant",
-             0))
-    boundarys_ccm.append(
-        _bc_("segment", segment_criteria(zone_xl, zone_yl, zone_xr, zone_yl),
-             "set_uy", "constant", 0))
-    boundarys_ccm.append(
-        _bc_("segment", segment_criteria(zone_xl, zone_yr, zone_xr, zone_yr),
-             "set_uy", "constant", +stretch))
-    boundarys_pd = BoundaryConds2d()
-    for offset in range(1):
-        real_yl = zone_yl - offset * grid_size
-        real_yr = zone_yr + offset * grid_size
-        dirichlet_yl = segment_criteria(zone_xl, real_yl, zone_xr, real_yl)
-        dirichlet_yr = segment_criteria(zone_xl, real_yr, zone_xr, real_yr)
-        center_yl = point_criteria(zone_xmid, real_yl)
-        center_yr = point_criteria(zone_xmid, real_yr)
-        boundarys_pd.append(_bc_("point", center_yl, "set_ux", "constant", 0))
-        boundarys_pd.append(_bc_("point", center_yr, "set_ux", "constant", 0))
-        boundarys_pd.append(
-            _bc_("segment", dirichlet_yl, "set_uy", "constant", 0))
-        boundarys_pd.append(
-            _bc_("segment", dirichlet_yr, "set_uy", "constant", +stretch))
-    del _bc_  # delete the abbreviation
+    boundarys_ccm.append(_bc_("point", center_yl, "set_ux", "constant", 0))
+    boundarys_ccm.append(_bc_("point", center_yr, "set_ux", "constant", 0))
+    boundarys_ccm.append(_bc_("segment", dirichlet_yl, "set_uy", "constant", 0))
+    boundarys_ccm.append(_bc_("segment", dirichlet_yr, "set_uy", "constant", +stretch))
     boundarys_ccm.manually_verify()
-    boundarys_pd.manually_verify()
+    # yapf: enable
+
     app_ccm = Simulation2d(mesh2d, material2d, boundarys_ccm)
     app_ccm.parallelized = True
     app_ccm.app_name = example_name
     app_ccm.apply_basis(Quad4Node())
     app_ccm.check_engine()
     app_ccm.export_to_tecplot("elasticity", *app_ccm.provied_solutions)
+
+    # yapf: disable
+    # uncomment these lines only if you want to constrain a boundary layer
+    thickness = ratio * grid_size
+    pd_dirichlet_yl = rectangle_criteria(zone_xl, zone_yl, zone_xr, zone_yl + thickness)
+    pd_dirichlet_yr = rectangle_criteria(zone_xl, zone_yr - thickness, zone_xr, zone_yr)
+    # uncomment end
+
+    # apply boundary conditions to PD problem
+    boundarys_pd = BoundaryConds2d()
+    boundarys_pd.append(_bc_("segment", cline_xmid, "set_ux", "constant", 0))
+    boundarys_pd.append(_bc_("segment", cline_ymid, "set_uy", "constant", 0.5 * +stretch))
+    # boundarys_pd.append(_bc_("segment", dirichlet_yl, "set_uy", "constant", 0))
+    # boundarys_pd.append(_bc_("segment", dirichlet_yr, "set_uy", "constant", +stretch))
+    # uncomment these lines only if you want to constrain a boundary layer
+    boundarys_pd.append(_bc_("group", pd_dirichlet_yl, "set_ux_uy", "dictionary", app_ccm.u))
+    boundarys_pd.append(_bc_("group", pd_dirichlet_yr, "set_ux_uy", "dictionary", app_ccm.u))
+    # uncomment end
+    boundarys_pd.manually_verify()
+    # yapf: enable
+
     app_pd = PdSimulation2d(mesh2d, material2d, boundarys_pd)
-    app_pd.parallelized = True
+    # app_pd.parallelized = True
     app_pd.app_name = example_name
     app_pd.material.setPeridynamic(horizon_radius, grid_size, inst_len)
     app_pd.mesh.peridynamic_construct(horizon_radius, 2 * horizon_radius,
