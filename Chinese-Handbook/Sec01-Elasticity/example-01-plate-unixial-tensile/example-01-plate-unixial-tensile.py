@@ -30,7 +30,7 @@ if __name__ == '__main__':
     print(f"Average Grid Size= {grid_size:.8f}")
 
     # 建立材料实例
-    material2d = Material2d(300e9, 0.25)
+    material2d = Material2d(300, 0.25)
 
     # 边界条件
     stretch = 0.02

@@ -5,6 +5,48 @@
 * 基本数值计算库 `numpy`
 * 科学数值计算库 `scipy`（主要使用到了稀疏矩阵模块 `scipy.sparse`）
 * JIT 编译器库 `numba`（主要用于加速数值计算）
+* 并行计算库 `joblib`（主要用于刚度矩阵的并行计算）
+
+这里我们直接执行前一节的检验代码来获取当前运行环境的基础信息。
+
+
+```python
+!python check-systeminfo.py
+```
+
+    ================================================================
+    CPU info:
+        Name:       Intel(R) Xeon(R) Gold 5218R CPU @ 2.10GHz
+        Logical:    40
+        Physical:   20
+        Usable:     40
+    ================================================================
+    Memory info:
+        Total:      31.63 GB
+        Free:       24.24 GB
+        Available:  24.24 GB
+    ================================================================
+    Package requirements info:
+        numpy:      1.19.2
+        scipy:      1.5.2
+        numba:      0.51.2
+        joblib:     1.0.0
+    ================================================================
+    
+
+
+```python
+!python hmsolver-info.py
+```
+
+    ================================================================
+    HMSolver info:
+        Author:     Shangkun Shen(polossk)
+        Email:      poloshensk@gmail.com
+        Version:    0.5.0
+        License:    GNU General Public License v3.0
+    ================================================================
+    
 
 ## 一、问题描述
 
@@ -85,7 +127,7 @@ print(f"Average Grid Size= {grid_size:.8f}")
 ```python
 from hmsolver.material import Material2d
 
-material2d = Material2d(300e9, 0.25)
+material2d = Material2d(300, 0.25)
 ```
 
 #### 2.1.3 边界条件信息
@@ -242,11 +284,12 @@ app.export_to_tecplot("elasticity", *app.provied_solutions)
 print(f"Total time cost: {formatting_time(time.time() - t0)}")
 ```
 
-            perparation completed. Total 0.38s
+    Is parallelized= False
+            perparation completed. Total 0.20s
             build stiffness martix k0 processing 17%, working on 426/2500, used 0.03s, eta 0.15s
             build stiffness martix k0 processing 34%, working on 851/2500, used 0.06s, eta 0.12s
-            build stiffness martix k0 processing 51%, working on 1276/2500, used 0.08s, eta 0.08s
-            build stiffness martix k0 processing 68%, working on 1701/2500, used 0.12s, eta 0.06s
+            build stiffness martix k0 processing 51%, working on 1276/2500, used 0.09s, eta 0.09s
+            build stiffness martix k0 processing 68%, working on 1701/2500, used 0.11s, eta 0.05s
             build stiffness martix k0 processing 85%, working on 2126/2500, used 0.15s, eta 0.03s
             generating completed. Total 0.16s
             mapping stiffness martix processing 17%, working on 426/2500, used 0.02s, eta 0.08s
@@ -256,13 +299,16 @@ print(f"Total time cost: {formatting_time(time.time() - t0)}")
             mapping stiffness martix processing 85%, working on 2126/2500, used 0.08s, eta 0.01s
             assembling completed. Total 0.15s
     Solving Linear System: DOF=5202.
-    Linear System Solved. Time cost= 0.05s
+        quick_diff= 586.6666666719398 / 173.33333333597093 =  3.384615384594303
+        Using fill_factor= 100
+            Info= 0 == 0, successful exit.
+    Linear System Solved. Time cost= 0.12s
     get_absolute_displace done.
     get_strain_field done.
-    get_stress_field done.
+    get_stress_field_single done.
     get_strain_energy_density done.
     get_distortion_energy_density done.
-    Total time cost: 2.02s
+    Total time cost: 1.21s
     
 
 当然如果单元过多的话可以开启多线程来加速运行，只需要将 `app.parallelized` 设置为 `True` 即可。和上面的代码类似，我们重新跑一边这个问题。可以从时间上发现多线程明显快于单线程版本。
@@ -290,22 +336,26 @@ app.export_to_tecplot("elasticity", *app.provied_solutions)
 print(f"Total time cost: {formatting_time(time.time() - t0)}")
 ```
 
-            perparation completed. Total 0.37s
-            generating completed (Parallel). Total 0.02s
-            mapping stiffness martix processing 17%, working on 426/2500, used 0.03s, eta 0.16s
+    Is parallelized= True
+            perparation completed. Total 0.20s
+            generating completed (Parallel). Total 0.01s
+            mapping stiffness martix processing 17%, working on 426/2500, used 0.02s, eta 0.10s
             mapping stiffness martix processing 34%, working on 851/2500, used 0.05s, eta 0.09s
-            mapping stiffness martix processing 51%, working on 1276/2500, used 0.08s, eta 0.08s
-            mapping stiffness martix processing 68%, working on 1701/2500, used 0.11s, eta 0.05s
-            mapping stiffness martix processing 85%, working on 2126/2500, used 0.13s, eta 0.02s
-            assembling completed. Total 0.18s
+            mapping stiffness martix processing 51%, working on 1276/2500, used 0.07s, eta 0.07s
+            mapping stiffness martix processing 68%, working on 1701/2500, used 0.09s, eta 0.04s
+            mapping stiffness martix processing 85%, working on 2126/2500, used 0.11s, eta 0.02s
+            assembling completed. Total 0.17s
     Solving Linear System: DOF=5202.
-    Linear System Solved. Time cost= 0.05s
+        quick_diff= 586.6666666719398 / 173.33333333597093 =  3.384615384594303
+        Using fill_factor= 100
+            Info= 0 == 0, successful exit.
+    Linear System Solved. Time cost= 0.12s
     get_absolute_displace done.
     get_strain_field done.
-    get_stress_field done.
+    get_stress_field_single done.
     get_strain_energy_density done.
     get_distortion_energy_density done.
-    Total time cost: 1.92s
+    Total time cost: 1.07s
     
 
 ## 附录
@@ -345,7 +395,7 @@ if __name__ == '__main__':
     print(f"Average Grid Size= {grid_size:.8f}")
 
     # 建立材料实例
-    material2d = Material2d(300e9, 0.25)
+    material2d = Material2d(300, 0.25)
 
     # 边界条件
     stretch = 0.02
